@@ -9,6 +9,8 @@ import mate.academy.util.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.util.List;
+
 @Dao
 public class OrderDaoImpl implements OrderDao {
     @Override
@@ -46,21 +48,15 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public User getByUser(Long userId) {
+    public List<Order> getByUser(Long userId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Order order = session.createQuery(
+            List<Order> orderList = session.createQuery(
                             "SELECT o FROM Order o "
                                     + "JOIN FETCH o.user "
                                     + "WHERE o.user.id = :userId", Order.class)
                     .setParameter("userId", userId)
-                    .setMaxResults(1)
-                    .uniqueResult();
-
-            if (order == null) {
-                throw new DataProcessingException("No orders found for user with id " + userId);
-            }
-
-            return order.getUser(); // повертаємо користувача
+                    .getResultList();
+            return orderList; // повертаємо користувача
         } catch (Exception e) {
             throw new DataProcessingException("Failed to get user with id: " + userId, e);
         }
